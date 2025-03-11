@@ -1,7 +1,6 @@
 package com.activity.squad2.config;
 
 import com.bpi.framework.web.configurer.client.RestApiConfigurerComponent;
-import com.bpi.framework.web.configproperties.HttpApiConfigProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestOperations;
@@ -11,10 +10,10 @@ import org.springframework.web.client.RestTemplate;
 public class RestTemplateConfig {
 
     private final RestApiConfigurerComponent apiConfigurer;
-    private final HttpApiConfigProperties apiConfigProperties;
+    private final CustomHttpApiConfigProperties apiConfigProperties;
 
     public RestTemplateConfig(RestApiConfigurerComponent apiConfigurer,
-                              HttpApiConfigProperties apiConfigProperties) {
+                              CustomHttpApiConfigProperties apiConfigProperties) {
         this.apiConfigurer = apiConfigurer;
         this.apiConfigProperties = apiConfigProperties;
     }

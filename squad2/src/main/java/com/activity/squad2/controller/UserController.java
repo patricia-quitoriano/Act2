@@ -64,6 +64,8 @@ public class UserController {
         }
     }
 
+    // Remove this method since it's duplicated in ICMAPController
+    /*
     @GetMapping("/icmap")
     public ResponseEntity<?> getICMAPData(
             @RequestParam String firstName,
@@ -82,6 +84,7 @@ public class UserController {
         ResponseEntity<?> icmapResponse = icmapService.getICMAPData(firstName, lastName);
         return icmapResponse;
     }
+    */
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User userDetails) {

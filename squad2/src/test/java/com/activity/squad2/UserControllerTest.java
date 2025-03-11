@@ -34,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class UserControllerTest {
 
     private MockMvc mockMvc;
+    private MockMvc icmapMockMvc; // For ICMAP controller tests
 
     @Mock
     private IUserService userService;
@@ -43,6 +44,9 @@ public class UserControllerTest {
 
     @InjectMocks
     private UserController userController;
+
+    @InjectMocks
+    private ICMAPController icmapController; // Added ICMAP controller
 
     private ObjectMapper objectMapper;
 
@@ -56,6 +60,11 @@ public class UserControllerTest {
 
         mockMvc = MockMvcBuilders
                 .standaloneSetup(userController)
+                .build();
+
+        // Setup the ICMAP controller for ICMAP endpoint tests
+        icmapMockMvc = MockMvcBuilders
+                .standaloneSetup(icmapController)
                 .build();
 
         testUser = new User(userId, "John", "Doe", "123 Street", LocalDate.of(1990, 1, 1));
@@ -176,7 +185,8 @@ public class UserControllerTest {
             return new ResponseEntity<>(icmapData, HttpStatus.OK);
         }).when(icmapService).getICMAPData(firstName, lastName);
 
-        mockMvc.perform(get("/api/users/icmap")
+        // Use icmapMockMvc instead of mockMvc since the endpoint is now in ICMAPController
+        icmapMockMvc.perform(get("/api/users/icmap")
                         .param("firstName", firstName)
                         .param("lastName", lastName)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -195,7 +205,8 @@ public class UserControllerTest {
 
         when(userService.getUserByName(firstName, lastName)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/api/users/icmap")
+        // Use icmapMockMvc instead of mockMvc
+        icmapMockMvc.perform(get("/api/users/icmap")
                         .param("firstName", firstName)
                         .param("lastName", lastName)
                         .contentType(MediaType.APPLICATION_JSON))

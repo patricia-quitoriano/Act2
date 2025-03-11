@@ -30,6 +30,14 @@ public class ICMAPServiceImpl implements ICMAPService {
 
     @Override
     public ResponseEntity<?> getICMAPData(String firstName, String lastName) {
+        // Validate input
+        if (firstName == null || lastName == null ||
+                firstName.trim().isEmpty() || lastName.trim().isEmpty()) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Invalid input parameters");
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
