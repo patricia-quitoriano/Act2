@@ -8,6 +8,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Tolerate;
 
 import java.time.LocalDate;
 
@@ -25,4 +26,13 @@ public class User {
     private String lastName;
     private String address;
     private LocalDate birthday;
+
+    // This constructor allows creating a User without specifying an id.
+    @Tolerate
+    public User(String firstName, String lastName, String address, LocalDate birthday) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.address = address;
+        this.birthday = birthday;
+    }
 }

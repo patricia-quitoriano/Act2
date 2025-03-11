@@ -3,85 +3,107 @@ package com.activity.squad2.controller;
 import com.activity.squad2.model.User;
 import com.activity.squad2.service.ICMAPService;
 import com.activity.squad2.service.IUserService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
-@RequiredArgsConstructor
 public class UserController {
 
     private final IUserService userService;
     private final ICMAPService icmapService;
 
-    // Create User
+    @Autowired
+    public UserController(IUserService userService, ICMAPService icmapService) {
+        this.userService = userService;
+        this.icmapService = icmapService;
+    }
+
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody User user) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(user));
+        User savedUser = userService.createUser(user);
+        return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
     }
 
-    // Get All Users
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+        List<User> users = userService.getAllUsers();
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
-    // Get User by ID
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
-        Optional<User> user = userService.getUserById(id);
-        if (user.isPresent()) {
-            return ResponseEntity.ok(user.get());
+        Optional<User> userOptional = userService.getUserById(id);
+        if (userOptional.isPresent()) {
+            return new ResponseEntity<>(userOptional.get(), HttpStatus.OK);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "User not found");
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
     }
 
-    // Get User by First & Last Name (Case-Insensitive)
     @GetMapping("/search")
-    public ResponseEntity<?> getUserByName(@RequestParam String firstName, @RequestParam String lastName) {
-        Optional<User> user = userService.getUserByName(firstName, lastName);
-        if (user.isPresent()) {
-            return ResponseEntity.ok(user.get());
+    public ResponseEntity<?> getUserByName(
+            @RequestParam String firstName,
+            @RequestParam String lastName) {
+        Optional<User> userOptional = userService.getUserByName(firstName, lastName);
+        if (userOptional.isPresent()) {
+            return new ResponseEntity<>(userOptional.get(), HttpStatus.OK);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "User not found");
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
     }
 
-    // Get ICMAP Data (Ensuring User Exists)
     @GetMapping("/icmap")
-    public ResponseEntity<?> getICMAPData(@RequestParam String firstName, @RequestParam String lastName) {
-        Optional<User> user = userService.getUserByName(firstName, lastName);
-        if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
+    public ResponseEntity<?> getICMAPData(
+            @RequestParam String firstName,
+            @RequestParam String lastName) {
+
+        // First check if the user exists
+        Optional<User> userOptional = userService.getUserByName(firstName, lastName);
+
+        if (userOptional.isEmpty()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "User not found");
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
-        return icmapService.getICMAPData(firstName, lastName);
+
+        // If user exists, get ICMAP data
+        ResponseEntity<?> icmapResponse = icmapService.getICMAPData(firstName, lastName);
+        return icmapResponse;
     }
 
-    // Update User by ID
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
-        Optional<User> user = userService.updateUser(id, updatedUser);
-        if (user.isPresent()) {
-            return ResponseEntity.ok(user.get());
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+        Optional<User> updatedUserOptional = userService.updateUser(id, userDetails);
+        if (updatedUserOptional.isPresent()) {
+            return new ResponseEntity<>(updatedUserOptional.get(), HttpStatus.OK);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "User not found");
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
     }
 
-    // Delete User
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         boolean deleted = userService.deleteUser(id);
-        if (!deleted) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
+        if (deleted) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } else {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "User not found");
+            return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
         }
-        return ResponseEntity.noContent().build();
     }
 }

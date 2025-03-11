@@ -1,63 +1,72 @@
 package com.activity.squad2;
 
-import com.activity.squad2.config.SecurityConfig;
+import com.activity.squad2.controller.ICMAPController;
 import com.activity.squad2.model.User;
 import com.activity.squad2.repository.UserRepository;
 import com.activity.squad2.service.ICMAPService;
+import com.activity.squad2.service.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import jakarta.transaction.Transactional;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(classes = {Application.class, SecurityConfig.class})
-@AutoConfigureMockMvc
-@Transactional
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 public class ICMAPIntegrationTests {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
+    @Mock
     private UserRepository userRepository;
 
-    @MockBean
+    @Mock
     private ICMAPService icmapService;
+
+    @InjectMocks
+    private UserServiceImpl userService;
+
+    private MockMvc mockMvc;
+    private User testUser;
 
     @BeforeEach
     void setUp() {
-        userRepository.deleteAll();
+        ICMAPController icmapController = new ICMAPController(userService, icmapService);
+        mockMvc = MockMvcBuilders.standaloneSetup(icmapController).build();
 
-        // Create test user with the same name we'll use in the test
-        User testUser = new User();
-        testUser.setFirstName("Juan");
-        testUser.setLastName("Dela Cruz");
-        userRepository.save(testUser);
+        testUser = new User("Juan", "Dela Cruz", "Some Address", LocalDate.of(1990, 1, 1));
+        testUser.setId(1L);
 
-        // Create a ResponseEntity with a wildcard type to match the service method return type
-        @SuppressWarnings("unchecked")
-        ResponseEntity<Object> mockResponse = new ResponseEntity<>(
-                "{ \"status\": \"success\", \"data\": { \"name\": \"Juan Dela Cruz\", \"status\": \"clear\" } }",
-                HttpStatus.OK
-        );
+        // Create response data
+        Map<String, Object> responseData = new HashMap<>();
+        Map<String, String> innerData = new HashMap<>();
+        innerData.put("name", "Juan Dela Cruz");
+        innerData.put("status", "clear");
+        responseData.put("status", "success");
+        responseData.put("data", innerData);
 
-        when(icmapService.getICMAPData(eq("Juan"), eq("Dela Cruz")))
-                .thenReturn((ResponseEntity) mockResponse);
+        // Set up mocks
+        when(userRepository.findByFirstNameAndLastNameIgnoreCase("Juan", "Dela Cruz"))
+                .thenReturn(Optional.of(testUser));
+
+        // Using doAnswer instead of thenReturn for the ICMAPService
+        doAnswer(invocation -> {
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
+        }).when(icmapService).getICMAPData(anyString(), anyString());
     }
 
     @Test
@@ -66,6 +75,6 @@ public class ICMAPIntegrationTests {
                         .param("firstName", "Juan")
                         .param("lastName", "Dela Cruz")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()); // Expect 200 OK
+                .andExpect(status().isOk());
     }
 }

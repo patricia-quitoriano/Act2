@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DefaultSecretProvider implements SecretProvider {
-    @Value("${icmp.api.key:17d41dba-fa77-11e6-a437-0b873af2b3d1}")
+    @Value("${icmap.api.key:17d41dba-fa77-11e6-a437-0b873af2b3d1}")
     private String icmapApiKey;
 
     @Override
