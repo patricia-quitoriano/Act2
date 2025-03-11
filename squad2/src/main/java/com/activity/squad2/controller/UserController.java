@@ -3,6 +3,7 @@ package com.activity.squad2.controller;
 import com.activity.squad2.model.User;
 import com.activity.squad2.service.ICMAPService;
 import com.activity.squad2.service.IUserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,15 +14,11 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
 
     private final IUserService userService;
     private final ICMAPService icmapService;
-
-    public UserController(IUserService userService, ICMAPService icmapService) {
-        this.userService = userService;
-        this.icmapService = icmapService;
-    }
 
     // Create User
     @PostMapping

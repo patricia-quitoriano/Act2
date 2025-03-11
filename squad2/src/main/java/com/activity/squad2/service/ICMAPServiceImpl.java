@@ -1,6 +1,7 @@
 package com.activity.squad2.service;
 
 import com.activity.squad2.secrets.SecretProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -15,15 +16,11 @@ import java.util.Base64;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class ICMAPServiceImpl implements ICMAPService {
 
     private final RestOperations restOperations;
     private final SecretProvider secretProvider;
-
-    public ICMAPServiceImpl(RestOperations restOperations, SecretProvider secretProvider) {
-        this.restOperations = restOperations;
-        this.secretProvider = secretProvider;
-    }
 
     @Value("${icmp.api.url:http://localhost:3001/api/users}")
     private String icmapApiUrl;
@@ -67,4 +64,3 @@ public class ICMAPServiceImpl implements ICMAPService {
         }
     }
 }
-
